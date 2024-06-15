@@ -23,6 +23,28 @@ router.get("/", function (req, res, next) {
   }
 });
 
+/* Get member by id*/
+
+router.get("/:id", function (req, res, next) {
+  const { id } = req.params;
+  try {
+    validateParams(+id);
+    pool.query(`select * from family_tree where id=$1`, [id], (err, result) => {
+      if (err) {
+        throw err;
+      }
+      if (result.rowCount === 1) {
+        res.json(result.rows[0]);
+      } else {
+        const err = new Error("Element does not exist");
+        err.status = 404;
+        throw err;
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 /* Create family members */
 router.post("/", function (req, res, next) {
   try {

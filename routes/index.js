@@ -1,6 +1,6 @@
 import { Router } from "express";
 import pool from "../config/dbconfig.js";
-import validateFamilyData from "../utils/dataValidation.js";
+import validateFamilyData, { validateUpdate } from "../utils/dataValidation.js";
 import validateParams from "../utils/validateParams.js";
 
 const router = Router();
@@ -38,7 +38,7 @@ router.get("/:id", function (req, res, next) {
       } else {
         const err = new Error("Element does not exist");
         err.status = 404;
-        throw err;
+        next(err);
       }
     });
   } catch (error) {
@@ -83,6 +83,38 @@ router.post("/", function (req, res, next) {
   }
 });
 
+router.put("/:id", function (req, res, next) {
+  const { id } = req.params;
+  try {
+    validateParams(+id);
+    validateUpdate(req.body);
+    const { salary, job_title } = req.body;
+    pool.query(`select * from family_tree where id=$1`, [id], (err, result) => {
+      if (err) {
+        throw err;
+      }
+      if (result.rowCount === 1) {
+        pool.query(
+          "update family_tree set salary = $1, job_title=$2 where id=$3",
+          [salary, job_title, result.rows[0].id],
+          (err) => {
+            if (err) {
+              throw err;
+            }
+            res.status(201).send({ message: "family member updated" });
+          },
+        );
+      } else {
+        const err = new Error("Element does not exist");
+        err.status = 404;
+        throw err;
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 /* delete family member */
 
 router.delete("/:id", function (req, res, next) {
@@ -101,7 +133,7 @@ router.delete("/:id", function (req, res, next) {
             if (err) {
               throw err;
             }
-            res.status(204).json({ message: "family member deleted" });
+            res.status(204).send({ message: "family member deleted" });
           },
         );
       } else {

@@ -1,8 +1,31 @@
-function validateFamilyData(data) {
+function checkObject(data) {
   if (typeof data !== "object" || data === null || Array.isArray(data)) {
     throw new Error("Data must be an object");
   }
+}
 
+export function validateUpdate(data) {
+  checkObject(data);
+  const dataKeys = Object.keys(data);
+  const expectedKeys = ["job_title", "salary"];
+
+  checkMissingAndUnexpectedKeys(expectedKeys, dataKeys);
+}
+
+function checkMissingAndUnexpectedKeys(expectedKeys, dataKeys) {
+  const missingKeys = expectedKeys.filter((key) => !dataKeys.includes(key));
+  if (missingKeys.lenth > 0) {
+    throw new Error(`Missing values ${missingKeys.join(", ")}`);
+  }
+
+  const unexpectedKeys = dataKeys.filter((key) => !expectedKeys.includes(key));
+  if (unexpectedKeys.lenth > 0) {
+    throw new Error(`Unexpected values ${unexpectedKeys.join(", ")}`);
+  }
+}
+
+function validateFamilyData(data) {
+  checkObject(data);
   const expectedKeys = [
     "name",
     "age",
@@ -15,15 +38,7 @@ function validateFamilyData(data) {
 
   const dataKeys = Object.keys(data);
 
-  const missingKeys = expectedKeys.filter((key) => !dataKeys.includes(key));
-  if (missingKeys.lenth > 0) {
-    throw new Error(`Missing values ${missingKeys.join(", ")}`);
-  }
-
-  const unexpectedKeys = dataKeys.filter((key) => !expectedKeys.includes(key));
-  if (unexpectedKeys.lenth > 0) {
-    throw new Error(`Unexpected values ${unexpectedKeys.join(", ")}`);
-  }
+  checkMissingAndUnexpectedKeys(expectedKeys, dataKeys);
 
   const { name, age, email, sex, job_title, salary, address } = data;
 
